@@ -1,0 +1,226 @@
+using DotnetStockAPI.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+namespace DotnetStockAPI.Controllers;
+// Multiple Roles
+// [Authorize(Roles = UserRolesModel.Admin + "," + UserRolesModel.Manager)]
+// [Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class ProductController1: ControllerBase
+{
+    // สร้าง Object ของ ApplicationDbContext
+    private readonly ApplicationDbContext _context;
+
+    // IWebHostEnvironment คืออะไร
+    // ContentRootPath: เส้นทางไปยังโฟลเดอร์รากของเว็บแอปพลิเคชัน
+    // WebRootPath: เส้นทางไปยังโฟลเดอร์ wwwroot ของเว็บแอปพลิเคชัน
+    private readonly IWebHostEnvironment _env;
+
+// ฟังก์ชันสร้าง Constructor รับค่า ApplicationDbContext
+    public ProductController1(ApplicationDbContext context, IWebHostEnvironment env)
+    {
+        _context = context;
+        _env = env;
+    }
+
+    // ฟังก์ชันสำหรับการดึงข้อมูลสินค้าทั้งหมด
+    // GET /api/Product
+    [HttpGet]
+    public ActionResult<product> GetProducts(
+        [FromQuery] int page=1, 
+        [FromQuery] int limit=100, 
+        [FromQuery] string? searchQuery=null,
+        [FromQuery] int? selectedCategory = null)
+    {
+        int skip = (page - 1) * limit;
+
+        // LINQ สำหรับการดึงข้อมูลจากตาราง Products ทั้งหมด
+        // var products = _context.products.ToList();
+        // var products = _context.products.Where(p => p.unitinstock >= 10).ToList();
+        // ส่งข้อมูลกลับไปให้ Client เป็น JSON
+        // แบบเชื่อมกับตารางอื่น products เชื่อมกับ categories
+        var query = _context.products
+        .Join(
+            _context.categories,
+            p => p.categoryid,
+            c => c.categoryid,
+            (p, c) => new
+            {
+                p.productid,
+                p.productname,
+                p.unitprice,
+                p.unitinstock,
+                p.productpicture,
+                p.categoryid,
+                p.createddate,
+                p.modifieddate,
+                c.categoryname
+            }
+        );
+
+        // ถ้ามีการค้นหา
+        if(!string.IsNullOrEmpty(searchQuery))
+        {
+            query = query.Where(p => EF.Functions.ILike(p.productname!, $"%{searchQuery}%"));
+        }
+        // ถ้ามีการค้นหาตาม Category
+        if(selectedCategory.HasValue)
+        {
+            query = query.Where(p => p.categoryid == selectedCategory.Value);
+        }
+        
+        // นับจำนวนข้อมูลทั้งหมด
+        var totalRecords = query.Count();
+        var products = query
+        .OrderByDescending(p => p.productid)
+        .Skip(skip)
+        .Take(limit)
+        .ToList();
+        // ส่งข้อมูลกลับไปให้ Client เป็น JSON
+        return Ok(
+            new {
+                Total = totalRecords,
+                Products = products
+            }
+        );
+    }
+
+    // ฟังก์ชันสำหรับการดึงข้อมูลสินค้าตาม id
+    // GET /api/Product/1
+    [HttpGet("{id}")]
+    public ActionResult<product> GetProduct(int id)
+    {
+        // LINQ สำหรับการดึงข้อมูลจากตาราง Products ตาม ID
+        // var product = _context.products.Find(id);
+// แบบเชื่อมกับตารางอื่น products เชื่อมกับ categories
+        var product = _context.products
+        .Join(
+            _context.categories,
+            p => p.categoryid,
+            c => c.categoryid,
+            (p, c) => new
+            {
+                p.productid,
+                p.productname,
+                p.unitprice,
+                p.unitinstock,
+                p.productpicture,
+                p.categoryid,
+                p.createddate,
+                p.modifieddate,
+                c.categoryname
+            }
+        )
+        .FirstOrDefault(p => p.productid == id);
+
+
+
+
+        // ถ้าไม่พบข้อมูล
+        if (product == null)
+        {
+            return NotFound();
+        }
+        // ส่งข้อมูลกลับไปให้ Client เป็น JSON
+        return Ok(product);
+    }
+
+    // // ฟังก์ชันสำหรับการเพิ่มข้อมูลสินค้า
+    // // POST: /api/Product
+    // [HttpPost]
+    // public ActionResult<product> CreateProduct([FromBody] product product)
+    // {
+    //     // เพิ่มข้อมูลลงในตาราง Products
+    //     _context.products.Add(product);
+    //     _context.SaveChanges();
+    //     // ส่งข้อมูลกลับไปให้ Client เป็น JSON
+    //     return Ok(product);
+    // }
+        // ฟังก์ชันสำหรับการเพิ่มข้อมูลสินค้า
+    // POST: /api/Product
+    [HttpPost]
+    public async Task<ActionResult<product>> CreateProduct([FromForm] product product, IFormFile? image)
+    {
+        // เพิ่มข้อมูลลงในตาราง Products
+        _context.products.Add(product);
+
+        // ถ้ามีการอัพโหลดไฟล์
+        if(image != null)
+        {
+            // กำหนดชื่อไฟล์รูปภาพใหม่
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+
+            // กำหนดเส้นทางไปยังโฟลเดอร์ uploads
+            string uploadFolder = Path.Combine(_env.WebRootPath, "uploads");
+
+            // ตรวจสอบว่าโฟลเดอร์ uploads มีหรือไม่
+            if (!Directory.Exists(uploadFolder))
+            {
+                Directory.CreateDirectory(uploadFolder);
+            }
+
+            using (var fileStream = new FileStream(Path.Combine(uploadFolder, fileName), FileMode.Create))
+            {
+                await image.CopyToAsync(fileStream);
+            }
+
+            // บันทึกชื่อไฟล์รูปภาพลงในฐานข้อมูล
+            product.productpicture = fileName;
+
+        } else {
+            product.productpicture = "noimg.jpg";
+        }
+
+        _context.SaveChanges();
+
+        // ส่งข้อมูลกลับไปให้ Client เป็น JSON
+        return Ok(product);
+    }
+
+    // ฟังก์ชันสำหรับการแก้ไขข้อมูลสินค้า
+    // PUT: /api/Product/1
+    [HttpPut("{id}")]
+    public ActionResult<product> UpdateProduct(int id, [FromBody] product product)
+    {
+        // ค้นหาข้อมูลจากตาราง Products ตาม ID
+        var productData = _context.products.Find(id);
+        // ถ้าไม่พบข้อมูล
+        if (productData == null)
+        {
+            return NotFound();
+        }
+        // แก้ไขข้อมูล
+        productData.productname = product.productname;
+        productData.unitprice = product.unitprice;
+        productData.unitinstock = product.unitinstock;
+        productData.productpicture = product.productpicture;
+        productData.categoryid = product.categoryid;
+        productData.modifieddate = product.modifieddate;
+        // บันทึกการแก้ไขข้อมูล
+        _context.SaveChanges();
+        // ส่งข้อมูลกลับไปให้ Client เป็น JSON
+        return Ok(productData);
+    }
+
+    // ฟังก์ชันสำหรับการลบข้อมูลสินค้า
+    // DELETE /api/Product/1
+    [HttpDelete("{id}")]
+    public ActionResult<product> DeleteProduct(int id)
+    {
+        // ค้นหาข้อมูลจากตาราง Products ตาม ID
+        var product = _context.products.Find(id);
+        // ถ้าไม่พบข้อมูล
+        if (product == null)
+        {
+            return NotFound();
+        }
+        // ลบข้อมูล
+        _context.products.Remove(product);
+        // บันทึกการลบข้อมูล
+        _context.SaveChanges();
+        // ส่งข้อมูลกลับไปให้ Client เป็น JSON
+        return Ok(product);
+    }
+}

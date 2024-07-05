@@ -1,0 +1,45 @@
+{
+  "Files": [
+    {
+      "Id": "D:\\Learning\\Angular\\Angular17DotnetCore8\\1.code\\DotnetStockAPI\\wwwroot\\uploads\\1bddb278-72ae-48ca-a9ea-e296daf9c768.png",
+      "PackagePath": "staticwebassets\\uploads\\1bddb278-72ae-48ca-a9ea-e296daf9c768.png"
+    },
+    {
+      "Id": "D:\\Learning\\Angular\\Angular17DotnetCore8\\1.code\\DotnetStockAPI\\wwwroot\\uploads\\4c3026d7-a456-40fe-9ae2-b59f8b726673.png",
+      "PackagePath": "staticwebassets\\uploads\\4c3026d7-a456-40fe-9ae2-b59f8b726673.png"
+    },
+    {
+      "Id": "D:\\Learning\\Angular\\Angular17DotnetCore8\\1.code\\DotnetStockAPI\\wwwroot\\uploads\\8ad3d6f3-30c3-4ffb-aca9-1c7095648bf0.png",
+      "PackagePath": "staticwebassets\\uploads\\8ad3d6f3-30c3-4ffb-aca9-1c7095648bf0.png"
+    },
+    {
+      "Id": "D:\\Learning\\Angular\\Angular17DotnetCore8\\1.code\\DotnetStockAPI\\wwwroot\\uploads\\92d4e187-f59e-4125-bf1c-89e4f8753519.png",
+      "PackagePath": "staticwebassets\\uploads\\92d4e187-f59e-4125-bf1c-89e4f8753519.png"
+    },
+    {
+      "Id": "D:\\Learning\\Angular\\Angular17DotnetCore8\\1.code\\DotnetStockAPI\\wwwroot\\uploads\\a.png",
+      "PackagePath": "staticwebassets\\uploads\\a.png"
+    },
+    {
+      "Id": "D:\\Learning\\Angular\\Angular17DotnetCore8\\1.code\\DotnetStockAPI\\wwwroot\\uploads\\d159faaa-229a-4280-a003-31bee888abd4.png",
+      "PackagePath": "staticwebassets\\uploads\\d159faaa-229a-4280-a003-31bee888abd4.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.DotnetStockAPI.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.DotnetStockAPI.props",
+      "PackagePath": "build\\DotnetStockAPI.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.DotnetStockAPI.props",
+      "PackagePath": "buildMultiTargeting\\DotnetStockAPI.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.DotnetStockAPI.props",
+      "PackagePath": "buildTransitive\\DotnetStockAPI.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
